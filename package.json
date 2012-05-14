@@ -1,0 +1,21 @@
+{
+  "author": "Chris Dew <cmsdew@gmail.com>",
+  "name": "ha",
+  "description": "High Availability at the network interface level",
+  "version": "0.0.1",
+  "homepage": "https://github.com/chrisdew/ha",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chrisdew/ha.git"
+  },
+  "main": "ha.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "0.6.x"
+  },
+  "bin" : {
+    "ha": "./ha.js"
+  }
+}

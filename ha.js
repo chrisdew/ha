@@ -23,13 +23,13 @@ var os = require('os');
 // override config from /etc/ha.json
 // TODO: now I've realised that it needs a config file, this should be done a lot more neatly
 try {
-  var content = fs.readFileSync('/etc/ha.js','utf8'); 
+  var content = fs.readFileSync('/etc/ha.json','utf8'); 
   var c = JSON.parse(content);
   if (c.ethernetDevice) ETHERNET_DEVICE = c.ethernetDevice;
   if (c.sharedEthernetDevice) ETHERNET_DEVICE = c.sharedEthernetDevice;
-  console.info('read config from /etc/ha.js');
+  console.info('read config from /etc/ha.json');
 } catch (e) {
-  console.warn('unable to read /etc/ha.js');
+  console.warn('unable to read /etc/ha.json');
 }
 
 // run main if this file has running stand-alone

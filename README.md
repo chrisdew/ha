@@ -32,6 +32,21 @@ When a server goes from STANDBY to ACTIVE it brings up the interface with the sh
 address and uses gratuitous arp to tell the LAN about it as quickly as possible.
 
 
+Shortcomings
+------------
+
+When a more 'worthy' node starts multicasting, the less worthy node which is 
+currently hosting the shared address brings it down immediately.  The more worthy
+node takes 3.5 seconds before it comes up.  This could be fixed with a more complex 
+protocol and state machines.
+
+This can be partially alleviated in by shortening the multicast interval and 
+tolerance.
+
+This HA solution is not bi- or multi-stable.  The most 'worthy' node will host the
+shared address at all times.
+
+
 Example /etc/network/interfaces file (Debian/Ubuntu)
 ----------------------------------------------------
 

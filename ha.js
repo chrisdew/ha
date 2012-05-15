@@ -51,7 +51,7 @@ function main() {
 
   var address = findAddress(ETHERNET_DEVICE, IP_VERSION);
   if (!address) { console.error('IP address not found'); process.exit(1); }
-  var msg = new Buffer(''); // no data, the multicast's src ip is the data
+  var msg = new Buffer('dummy'); // no data, the multicast's src ip is the data
 
   // bind the multicast socket
   var socket = dgram.createSocket('udp4');
@@ -81,12 +81,15 @@ function main() {
    */
   function change_state(new_state) {
     console.info('switching from', state, 'to', new_state);
-    if (state !== STANDBY && new_state === STANDBY) {
+    if (new_state === STANDBY) {
+      if (timeout) clearTimeout(timeout);
       timeout = setTimeout(function() { change_state(ACTIVE); }, TOLERANCE);
+    }
+    if (state !== STANDBY && new_state === STANDBY) {
       spawn2("ifdown", [SHARED_ETHERNET_DEVICE]);
     }
     if (state === STANDBY && new_state === ACTIVE) {
-      console.log('zzz', findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION));
+      console.log('zzzz', findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION));
       spawn2("ifup", [SHARED_ETHERNET_DEVICE], function(err) {
         if (!err) { // only do gratuitous arp is interface has come up without error
           var shared_addr = findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION);

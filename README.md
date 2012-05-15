@@ -73,7 +73,6 @@ iface eth0 inet static
  netmask 255.255.255.0
  network 192.168.1.0
  broadcast 192.168.1.255
- gateway 192.168.1.254
 ```
 
 

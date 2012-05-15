@@ -19,6 +19,7 @@ var MULTICAST_PORT = 5554;           // and MULTICAST_PORT defines the group
 var spawn = require('child_process').spawn
 var dgram = require('dgram');
 var os = require('os');
+var fs = require('fs');
 
 // override config from /etc/ha.json
 // TODO: now I've realised that it needs a config file, this should be done a lot more neatly

@@ -27,7 +27,7 @@ try {
   var content = fs.readFileSync('/etc/ha.json','utf8'); 
   var c = JSON.parse(content);
   if (c.ethernetDevice) ETHERNET_DEVICE = c.ethernetDevice;
-  if (c.sharedEthernetDevice) ETHERNET_DEVICE = c.sharedEthernetDevice;
+  if (c.sharedEthernetDevice) SHARED_ETHERNET_DEVICE = c.sharedEthernetDevice;
   console.info('read config from /etc/ha.json');
 } catch (e) {
   console.warn('unable to read /etc/ha.json');

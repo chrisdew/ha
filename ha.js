@@ -3,7 +3,7 @@
 // This script should be installed on all the boxes which host the virtual address.
 // Generally it will not be necessary to alter any parameters on a per-box basis.
 
-// constants
+// config
 var STANDBY = 'STANDBY', ACTIVE = 'ACTIVE';
 var MULTICAST_INTERVAL = 1000; // ms
 var TOLERANCE = 3500; // ms of missed packets before becoming master
@@ -19,6 +19,18 @@ var MULTICAST_PORT = 5554;           // and MULTICAST_PORT defines the group
 var spawn = require('child_process').spawn
 var dgram = require('dgram');
 var os = require('os');
+
+// override config from /etc/ha.json
+// TODO: now I've realised that it needs a config file, this should be done a lot more neatly
+try {
+  var content = fs.readFileSync('/etc/ha.js','utf8'); 
+  var c = JSON.parse(content);
+  if (c.ethernetDevice) ETHERNET_DEVICE = c.ethernetDevice;
+  if (c.sharedEthernetDevice) ETHERNET_DEVICE = c.sharedEthernetDevice;
+  console.info('read config from /etc/ha.js');
+} catch (e) {
+  console.warn('unable to read /etc/ha.js');
+}
 
 // run main if this file has running stand-alone
 if (!module.parent) { main(); } 

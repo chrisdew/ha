@@ -81,7 +81,7 @@ Why NodeJS, not the mature Linux HA?
 
 Because Linux HA was NIH ;)
 
-Using NodeJS makes is extremely easy from us to add HA to our existing NodeJS 
+Using NodeJS makes is extremely easy for us to add HA to our existing NodeJS 
 services and lets us customise HA policy very easily.
 
 

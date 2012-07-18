@@ -58,6 +58,7 @@ Example /etc/network/interfaces file (Debian/Ubuntu)
 auto lo
 iface lo inet loopback
 
+# The primary network interface
 auto eth0
 iface eth0 inet static
  address 192.168.1.20
@@ -66,7 +67,7 @@ iface eth0 inet static
  broadcast 192.168.1.255
  gateway 192.168.1.254
 
-# The primary network interface
+# The shared cluster address
 auto eth0:1
 iface eth0 inet static
  address 192.168.1.100

@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/chrisdew/ha.png)](http://travis-ci.org/chrisdew/ha)
 ha - High Availability using NodeJS
 -----------------------------------
 

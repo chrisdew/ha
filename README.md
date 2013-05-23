@@ -68,8 +68,7 @@ iface eth0 inet static
  gateway 192.168.1.254
 
 # The shared cluster address
-auto eth0:1
-iface eth0 inet static
+iface eth0:1 inet static
  address 192.168.1.100
  netmask 255.255.255.0
  network 192.168.1.0

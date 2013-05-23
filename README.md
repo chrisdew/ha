@@ -5,6 +5,8 @@ ha - High Availability using NodeJS
 
 Two or more Linux servers on one LAN, providing one shared (or virtual) IP address.
 
+*Needs updating for NodeJS 0.8.X and 0.10.X*
+
 
 How it Works
 ------------

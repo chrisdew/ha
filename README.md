@@ -86,10 +86,3 @@ Using NodeJS makes is extremely easy for us to add HA to our existing NodeJS
 services and lets us customise HA policy very easily.
 
 
-Licence
--------
-
-Copyright (c) Thorcom Systems Ltd. 2012, All Rights Reserved.
-
-I expect to be able to release it under the MIT licence (like NodeJS), but currently
-'ha' is currently proprietary code.

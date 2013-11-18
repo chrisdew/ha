@@ -75,17 +75,20 @@ function main() {
     }, MULTICAST_INTERVAL);
   });
 
-  // handle ctrl-C nicely (for running in foreground)
-  process.on( 'SIGINT', function() {
-    console.log('Shutting down due to SIGINT (Ctrl-C), in', (TOLERANCE/2) + 'ms...');
-    change_state(SHUTDOWN);
-    setTimeout(function() {
-      console.log("Exiting now, press ENTER for command prompt.");
-      process.exit(0);
-    }, TOLERANCE);
-  });
-
-  return; // end of program, everything subsequent is event-triggered
+  var sigs = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+  for (var i in sigs) {
+    (function(sig) { // work around until we get 'let'
+      process.on(sig, function() {
+        var ms = TOLERANCE / 2;
+        console.log('Shutting down due to', sig, ', in', ms + 'ms...');
+        change_state(SHUTDOWN);
+        setTimeout(function() {
+          console.log("Exiting now, press ENTER for command prompt.");
+          process.exit(0);
+        }, ms);
+      });
+    })(sigs[i]); // work around until we get 'let'
+  }
 
   /*
    * This function invokes the side-effects which need to happen on a state change.

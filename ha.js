@@ -99,9 +99,10 @@ function main() {
    * This function is defined *inside* main as it needs access to set the 'state' variable.
    */
   function change_state(new_state) {
-    if (new_state === state) return; // ignore non-changes
+    if (new_state !== state) {
+      console.info('switching from', state, 'to', new_state);
+    }
     if (state === SHUTDOWN) return;  // never change out of shutdown
-    console.info('switching from', state, 'to', new_state);
     if (new_state === STANDBY) {
       if (timeout) clearTimeout(timeout);
       timeout = setTimeout(function() { change_state(ACTIVE); }, TOLERANCE);

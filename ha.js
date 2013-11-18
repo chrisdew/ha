@@ -63,7 +63,7 @@ function main() {
     socket.setMulticastLoopback(false);
     socket.addMembership(MULTICAST_ADDRESS);
     socket.on('message', function(data, rinfo) {
-      console.log(data, rinfo);
+      //console.log(data, rinfo);
       // in this trivial implementation, the lowest IP address (by alpha-numeric sort) will
       // claim the right to be ACTIVE
       if (rinfo.address < address) change_state(STANDBY);
@@ -77,7 +77,7 @@ function main() {
 
   // handle ctrl-C nicely (for running in foreground)
   process.on( 'SIGINT', function() {
-    console.log('Shutting down from SIGINT (Ctrl-C), in', (TOLERANCE/2) + 'ms...');
+    console.log('Shutting down due to SIGINT (Ctrl-C), in', (TOLERANCE/2) + 'ms...');
     change_state(SHUTDOWN);
     setTimeout(function() {
       console.log("Exiting now, press ENTER for command prompt.");
@@ -96,6 +96,8 @@ function main() {
    * This function is defined *inside* main as it needs access to set the 'state' variable.
    */
   function change_state(new_state) {
+    if (new_state === state) return; // ignore non-changes
+    if (state === SHUTDOWN) return;  // never change out of shutdown
     console.info('switching from', state, 'to', new_state);
     if (new_state === STANDBY) {
       if (timeout) clearTimeout(timeout);

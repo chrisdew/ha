@@ -4,16 +4,17 @@
 // Generally it will not be necessary to alter any parameters on a per-box basis.
 
 // config
-var STANDBY = 'STANDBY', ACTIVE = 'ACTIVE';
+var STANDBY = 'STANDBY', ACTIVE = 'ACTIVE', SHUTDOWN = 'SHUTDOWN';
 var MULTICAST_INTERVAL = 1000; // ms
 var TOLERANCE = 3500; // ms of missed packets before becoming master
 var CHILD_TIMEOUT = 10000; // ms before the program exits due to a child command
                            // not completing
 var ETHERNET_DEVICE = 'eth0';
-var SHARED_ETHERNET_DEVICE = 'eth0:1';
+var SHARED_ETHERNET_DEVICE = 'eth0:0';
 var IP_VERSION = 'IPv4';
 var MULTICAST_ADDRESS = '239.1.2.3'; // a unique combination of MULTICAST_ADDRESS
 var MULTICAST_PORT = 5554;           // and MULTICAST_PORT defines the group
+//var MULTICAST_INTERFACE = undefined; // default
 
 // imports
 var spawn = require('child_process').spawn
@@ -51,25 +52,40 @@ function main() {
 
   var address = findAddress(ETHERNET_DEVICE, IP_VERSION);
   if (!address) { console.error('IP address not found'); process.exit(1); }
-  var msg = new Buffer('dummy'); // no data, the multicast's src ip is the data
+  var msg = new Buffer('https://github.com/chrisdew/ha'); // No data, the multicast's src ip is the data.
+                                                          // Broadcasting the URL, in case
+                                                          // anyone wonders what the traffic is.
 
   // bind the multicast socket
   var socket = dgram.createSocket('udp4');
-  socket.bind(MULTICAST_PORT, '0.0.0.0');
-  socket.setMulticastTTL(64);
-  socket.addMembership(MULTICAST_ADDRESS);
-  socket.on('message', function(data, rinfo) {
-    console.log(data, rinfo);
-    // in this trivial implementation, the lowest IP address (by alpha-numeric sort) will
-    // claim the right to be ACTIVE
-    if (rinfo.address < address) change_state(STANDBY);
+    socket.bind(MULTICAST_PORT, MULTICAST_ADDRESS, function() {
+    socket.setMulticastTTL(64);
+    socket.setMulticastLoopback(false);
+    socket.addMembership(MULTICAST_ADDRESS);
+    socket.on('message', function(data, rinfo) {
+      console.log(data, rinfo);
+      // in this trivial implementation, the lowest IP address (by alpha-numeric sort) will
+      // claim the right to be ACTIVE
+      if (rinfo.address < address) change_state(STANDBY);
+    });
+    setInterval(function() {
+      // multicast every MULTICAST_INTERVAL to suppress any less worthy node from going
+      // active
+      socket.send(msg, 0, msg.length, MULTICAST_PORT, MULTICAST_ADDRESS);
+    }, MULTICAST_INTERVAL);
   });
-  setInterval(function() {
-    // multicast every MULTICAST_INTERVAL to suppress any less worthy node from going
-    // active
-    socket.send(msg, 0, msg.length, MULTICAST_PORT, MULTICAST_ADDRESS);
-  }, MULTICAST_INTERVAL);
-  return; // end of program, everythin subsequent is event-triggered
+
+  // handle ctrl-C nicely (for running in foreground)
+  process.on( 'SIGINT', function() {
+    console.log('Shutting down from SIGINT (Ctrl-C), in', (TOLERANCE/2) + 'ms...');
+    change_state(SHUTDOWN);
+    setTimeout(function() {
+      console.log("Exiting now, press ENTER for command prompt.");
+      process.exit(0);
+    }, TOLERANCE);
+  });
+
+  return; // end of program, everything subsequent is event-triggered
 
   /*
    * This function invokes the side-effects which need to happen on a state change.
@@ -85,7 +101,7 @@ function main() {
       if (timeout) clearTimeout(timeout);
       timeout = setTimeout(function() { change_state(ACTIVE); }, TOLERANCE);
     }
-    if (state !== STANDBY && new_state === STANDBY) {
+    if (state === ACTIVE && (new_state === STANDBY || new_state === SHUTDOWN)) {
       spawn2("ifdown", [SHARED_ETHERNET_DEVICE]);
     }
     if (state === STANDBY && new_state === ACTIVE) {

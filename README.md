@@ -3,9 +3,9 @@ ha - High Availability using NodeJS
 
 'ha' is a very limited high-availability application focused on one use-case:
 
-Two or more Linux servers on one LAN, providing one shared (or virtual) IP address.
+Two or more Linux servers on one LAN, providing services on one shared (or virtual) IP address.
 
-*Needs updating for NodeJS 0.8.X and 0.10.X*
+Updated for NodeJS v0.10.X.
 
 
 How it Works
@@ -13,7 +13,7 @@ How it Works
 
 Each server is configured with a real ethernet address (e.g. eth0 192.168.1.20) and 
 the shared address (e.g. eth0:1 192.168.1.100).  (I've used a virtual ethernet 
-device, but this could easily be a realy device on a multi-homed server.  There is 
+device, but this could easily be a real device on a multi-homed server.  There is 
 no requirement that the shared address is in the same subnet as the unique 
 addresses.)
 

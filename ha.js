@@ -5,8 +5,8 @@
 
 // config
 var STANDBY = 'STANDBY', ACTIVE = 'ACTIVE', SHUTDOWN = 'SHUTDOWN';
-var MULTICAST_INTERVAL = 1000; // ms
-var TOLERANCE = 3500; // ms of missed packets before becoming master
+var MULTICAST_INTERVAL = 100; // ms
+var TOLERANCE = 350; // ms of missed packets before becoming master
 var CHILD_TIMEOUT = 10000; // ms before the program exits due to a child command
                            // not completing
 var ETHERNET_DEVICE = 'eth0';

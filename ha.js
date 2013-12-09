@@ -9,8 +9,8 @@ var MULTICAST_INTERVAL = 100; // ms
 var TOLERANCE = 350; // ms of missed packets before becoming master
 var CHILD_TIMEOUT = 10000; // ms before the program exits due to a child command
                            // not completing
-var ETHERNET_DEVICE = 'eth0';
-var SHARED_ETHERNET_DEVICE = 'eth0:0';
+var ETHERNET_DEVICE = 'bond0';
+var SHARED_ETHERNET_DEVICE = 'bond0:0';
 var IP_VERSION = 'IPv4';
 var MULTICAST_ADDRESS = '239.1.2.3'; // a unique combination of MULTICAST_ADDRESS
 var MULTICAST_PORT = 5554;           // and MULTICAST_PORT defines the group

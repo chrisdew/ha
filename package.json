@@ -2,7 +2,7 @@
   "author": "Chris Dew <cmsdew@gmail.com>",
   "name": "ha",
   "description": "High Availability at the network interface level",
-  "version": "0.0.9",
+  "version": "0.0.13",
   "homepage": "https://github.com/chrisdew/ha",
   "repository": {
     "type": "git",

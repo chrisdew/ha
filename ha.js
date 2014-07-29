@@ -10,10 +10,10 @@ var TOLERANCE = 350; // ms of missed packets before becoming master
 var CHILD_TIMEOUT = 10000; // ms before the program exits due to a child command
                            // not completing
 var ETHERNET_DEVICE = 'bond0';
-var SHARED_ETHERNET_DEVICE = 'bond0:0';
+var SHARED_ETHERNET_DEVICE = 'bond0:1';
 var IP_VERSION = 'IPv4';
-var MULTICAST_ADDRESS = '239.1.2.3'; // a unique combination of MULTICAST_ADDRESS
-var MULTICAST_PORT = 5554;           // and MULTICAST_PORT defines the group
+var MULTICAST_ADDRESS = '239.2.3.4'; // a unique combination of MULTICAST_ADDRESS
+var MULTICAST_PORT = 5555;           // and MULTICAST_PORT defines the group
 //var MULTICAST_INTERFACE = undefined; // default
 
 // imports
@@ -21,6 +21,16 @@ var spawn = require('child_process').spawn
 var dgram = require('dgram');
 var os = require('os');
 var fs = require('fs');
+var events = require('events');
+
+// in case ha is being used as a module
+module.exports = exports = new events.EventEmitter();
+exports.main = main;
+exports.isActive = isActive;
+exports.isStandby = isStandby;
+exports.isShutdown = isShutdown;
+exports.shutdown = shutdown;
+exports.findAddress = findAddress;
 
 // override config from /etc/ha.json
 // TODO: now I've realised that it needs a config file, this should be done a lot more neatly
@@ -35,7 +45,13 @@ try {
 }
 
 // run main if this file has running stand-alone
-if (!module.parent) { main(); } 
+if (!module.parent) main(); 
+
+var state;   // module level variables - this implies only one ha per process
+var timeout;
+function isActive() { return state === ACTIVE; }
+function isStandby() { return state === STANDBY; }
+function isShutdown() { return state === SHUTDOWN; }
 
 /*
  * This sets up the program and returns immediately. 
@@ -47,7 +63,6 @@ if (!module.parent) { main(); }
  */
 function main() {
   // STANDBY/ACTIVE state
-  var state, timeout;
   change_state(STANDBY);
 
   var address = findAddress(ETHERNET_DEVICE, IP_VERSION);
@@ -89,42 +104,56 @@ function main() {
       });
     })(sigs[i]); // work around until we get 'let'
   }
+}
 
-  /*
-   * This function invokes the side-effects which need to happen on a state change.
-   * These are:
-   * 1. bring up/down the shared interface
-   * 2. (ACTIVE only) gratuitously arp the shared interface by both methods
-   * 
-   * This function is defined *inside* main as it needs access to set the 'state' variable.
-   */
-  function change_state(new_state) {
-    if (new_state !== state) {
-      console.info('switching from', state, 'to', new_state);
-    }
-    if (state === SHUTDOWN) return;  // never change out of shutdown
-    if (new_state === STANDBY) {
-      if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(function() { change_state(ACTIVE); }, TOLERANCE);
-    }
-    if (state === ACTIVE && (new_state === STANDBY || new_state === SHUTDOWN)) {
-      spawn2("ifdown", [SHARED_ETHERNET_DEVICE]);
-    }
-    if (state === STANDBY && new_state === ACTIVE) {
-      console.log('zzzz', findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION));
-      spawn2("ifup", [SHARED_ETHERNET_DEVICE], function(err) {
-        if (!err) { // only do gratuitous arp is interface has come up without error
-          var shared_addr = findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION);
-          if (!shared_addr) { console.error('shared IP address not found'); process.exit(1); }
-          console.info("arping", ['-A', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
-          spawn2("arping", ['-A', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
-          console.info("arping", ['-U', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
-          spawn2("arping", ['-U', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
-        }
-      });
-    }
-    state = new_state;
+function shutdown() {
+  var ms = TOLERANCE / 2;
+  console.log('Shutting down due to application request...');
+  change_state(SHUTDOWN);
+  setTimeout(function() {
+    console.log("Exiting now, press ENTER for command prompt.");
+    process.exit(0);
+  }, ms);
+}
+
+/*
+ * This function invokes the side-effects which need to happen on a state change.
+ * These are:
+ * 1. bring up/down the shared interface
+ * 2. (ACTIVE only) gratuitously arp the shared interface by both methods
+ */
+function change_state(new_state) {
+  if (new_state !== state) {
+    console.info('switching from', state, 'to', new_state);
   }
+  if (state === SHUTDOWN) {
+    console.error('shutdown cannot be aborted');
+    return;  // never change out of shutdown
+  }
+  if (new_state === STANDBY) {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(function() { change_state(ACTIVE); }, TOLERANCE);
+  }
+  if (state === ACTIVE && (new_state === STANDBY || new_state === SHUTDOWN)) {
+    spawn2("ifdown", [SHARED_ETHERNET_DEVICE]);
+  }
+  if (state === STANDBY && new_state === ACTIVE) {
+    console.log('zzzz', findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION));
+    spawn2("ifup", [SHARED_ETHERNET_DEVICE], function(err) {
+      if (!err) { // only do gratuitous arp is interface has come up without error
+        var shared_addr = findAddress(SHARED_ETHERNET_DEVICE, IP_VERSION);
+        if (!shared_addr) { console.error('shared IP address not found'); process.exit(1); }
+        console.info("arping", ['-A', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
+        spawn2("arping", ['-A', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
+        console.info("arping", ['-U', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
+        spawn2("arping", ['-U', '-I', ETHERNET_DEVICE, shared_addr, '-w', 1]);
+      }
+    });
+  }
+  if (new_state !== state) {
+    exports.emit(new_state.toLowerCase());
+  }
+  state = new_state;
 }
 
 /*
